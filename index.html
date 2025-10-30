@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gideon v. Wainwright - Landmark Supreme Court Case</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1a365d;
+            --accent-amber: #d69e2e;
+            --text-dark: #2d3748;
+            --bg-light: #fafafa;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+        }
+        
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-amber));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .legal-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(26, 54, 93, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .legal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(26, 54, 93, 0.15);
+        }
+        
+        .term-card {
+            perspective: 1000px;
+            height: 200px;
+        }
+        
+        .term-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .term-card:hover .term-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .term-card-front, .term-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .term-card-back {
+            transform: rotateY(180deg);
+            background: var(--primary-blue);
+            color: white;
+        }
+        
+        .timeline-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .timeline-node:hover {
+            transform: scale(1.2);
+        }
+        
+        .timeline-node.active {
+            transform: scale(1.3);
+            background: var(--accent-amber);
+        }
+        
+        #p5-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        
+        .scroll-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(26, 54, 93, 0.1);
+            z-index: 1000;
+        }
+        
+        .scroll-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-amber));
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-amber);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        /* Designer Section Styles */
+        .designer-section {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .designer-title {
+            font-family: 'Inter', sans-serif;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--accent-amber);
+            padding-bottom: 0.5rem;
+        }
+        
+        .designer-subtitle {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            font-weight: 500;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .designer-content {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        
+        .designer-list {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .designer-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Search Bar Styles */
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+            outline: none;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #718096;
+        }
+        
+        /* Progress Tracker Styles */
+        .progress-container {
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            height: 8px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-amber));
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-indicator">
+        <div class="scroll-progress" id="scrollProgress"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-900 to-amber-600 rounded-full"></div>
+                    <span class="text-xl font-semibold text-gray-900" data-en="Gideon v. Wainwright" data-zh="吉迪恩诉温赖特案">Gideon v. Wainwright</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-gray-700 hover:text-blue-900" data-en="Home" data-zh="首页">Home</a>
+                    <a href="#designer" class="nav-link text-gray-700 hover:text-blue-900" data-en="Designer" data-zh="设计者">Designer</a>
+                    <a href="case-details.html" class="nav-link text-gray-700 hover:text-blue-900" data-en="Case Details" data-zh="案例详情">Case Details</a>
+                    <a href="knowledge-base.html" class="nav-link text-gray-700 hover:text-blue-900" data-en="Knowledge Base" data-zh="知识库">Knowledge Base</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="langToggle" class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                        EN / 中文
+                    </button>
+                    <button id="mobileMenu" class="md:hidden p-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div id="p5-background"></div>
+        <div class="relative z-10 text-center max-w-4xl mx-auto px-4">
+            <h1 class="hero-title text-5xl md:text-7xl font-bold mb-6 opacity-0" id="heroTitle">
+                Gideon v. Wainwright
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 mb-8 opacity-0" id="heroSubtitle" data-en="Landmark Supreme Court Case Establishing the Right to Counsel" data-zh="确立律师权的里程碑式最高法院案例">
+                Landmark Supreme Court Case Establishing the Right to Counsel
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center opacity-0" id="heroButtons">
+                <a href="#designer" class="px-8 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-all transform hover:scale-105" data-en="Designer Info" data-zh="设计者信息">
+                    Designer Info
+                </a>
+                <a href="case-details.html" class="px-8 py-3 border-2 border-blue-900 text-blue-900 rounded-lg hover:bg-blue-900 hover:text-white transition-all" data-en="Explore Case Details" data-zh="探索案例详情">
+                    Explore Case Details
+                </a>
+                <a href="knowledge-base.html" class="px-8 py-3 border-2 border-blue-900 text-blue-900 rounded-lg hover:bg-blue-900 hover:text-white transition-all" data-en="Legal Knowledge Base" data-zh="法律知识库">
+                    Legal Knowledge Base
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Designer Section -->
+    <section id="designer" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4" data-en="Designer Information" data-zh="设计者信息">Designer Information</h2>
+                <p class="text-xl text-gray-600" data-en="About the designer and the design process" data-zh="关于设计者和设计过程">About the designer and the design process</p>
+            </div>
+            
+            <div class="designer-section">
+                <h3 class="designer-title text-2xl">一、设计者：张润涵</h3>
+                
+                <h4 class="designer-subtitle text-xl">设计工具</h4>
+                <ul class="designer-list designer-content">
+                    <li>HTML5</li>
+                    <li>CSS3/Tailwind CSS</li>
+                    <li>JavaScript</li>
+                    <li>Figma</li>
+                    <li>GitHub</li>
+                </ul>
+                
+                <h4 class="designer-subtitle text-xl">设计方法</h4>
+                <ul class="designer-list designer-content">
+                    <li>用户中心设计</li>
+                    <li>响应式设计</li>
+                    <li>渐进增强</li>
+                    <li>视觉层次结构</li>
+                </ul>
+                
+                <h4 class="designer-subtitle text-xl">设计过程</h4>
+                <ul class="designer-list designer-content">
+                    <li>需求分析</li>
+                    <li>内容规划</li>
+                    <li>原型设计</li>
+                    <li>视觉设计</li>
+                    <li>开发实现</li>
+                    <li>测试优化</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Overview -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4" data-en="Case Overview" data-zh="案例概览">Case Overview</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto" data-en="A landmark decision that transformed American criminal justice by establishing the constitutional right to counsel for indigent defendants." data-zh="一个里程碑式的判决，通过为贫困被告确立宪法规定的律师权，改变了美国的刑事司法制度。">
+                    A landmark decision that transformed American criminal justice by establishing the constitutional right to counsel for indigent defendants.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="legal-card rounded-xl p-6">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3" data-en="The Decision" data-zh="判决">The Decision</h3>
+                    <p class="text-gray-600" data-en="The Court ruled that the Sixth Amendment right to counsel applies to state courts through the Fourteenth Amendment, requiring states to provide attorneys for indigent defendants in felony cases." data-zh="法院裁定第六修正案的律师权通过第十四修正案适用于州法院，要求各州在重罪案件中为贫困被告提供律师。">
+                        The Court ruled that the Sixth Amendment right to counsel applies to state courts through the Fourteenth Amendment, requiring states to provide attorneys for indigent defendants in felony cases.
+                    </p>
+                </div>
+                
+                <div class="legal-card rounded-xl p-6">
+                    <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3" data-en="The Impact" data-zh="影响">The Impact</h3>
+                    <p class="text-gray-600" data-en="Overturned Betts v. Brady (1942) and established that counsel is fundamental to fair trials, fundamentally changing criminal procedure across all states." data-zh="推翻了Betts v. Brady案（1942年），确立了律师对公平审判的根本性作用，从根本上改变了所有州的刑事诉讼程序。">
+                        Overturned Betts v. Brady (1942) and established that counsel is fundamental to fair trials, fundamentally changing criminal procedure across all states.
+                    </p>
+                </div>
+                
+                <div class="legal-card rounded-xl p-6">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3" data-en="The Legacy" data-zh="遗产">The Legacy</h3>
+                    <p class="text-gray-600" data-en="Created the foundation for the modern public defender system and ensured that poverty does not determine access to justice in criminal cases." data-zh="为现代公设辩护人制度奠定了基础，确保在刑事案件中贫困不决定获得正义的机会。">
+                        Created the foundation for the modern public defender system and ensured that poverty does not determine access to justice in criminal cases.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4" data-en="Case Timeline" data-zh="案例时间线">Case Timeline</h2>
+                <p class="text-xl text-gray-600" data-en="Key events leading to this landmark decision" data-zh="导致这一里程碑式判决的关键事件">Key events leading to this landmark decision</p>
+            </div>
+            
+            <div class="relative">
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gray-300"></div>
+                
+                <div class="space-y-12">
+                    <div class="timeline-item flex items-center justify-between">
+                        <div class="w-5/12 text-right">
+                            <div class="legal-card rounded-xl p-6">
+                                <h3 class="text-lg font-semibold mb-2">June 3, 1961</h3>
+                                <p class="text-gray-600" data-en="Gideon arrested for breaking and entering a poolroom in Panama City, Florida" data-zh="吉迪恩在佛罗里达州巴拿马城因闯入台球厅被捕">Gideon arrested for breaking and entering a poolroom in Panama City, Florida</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                        <div class="w-5/12"></div>
+                    </div>
+                    
+                    <div class="timeline-item flex items-center justify-between">
+                        <div class="w-5/12"></div>
+                        <div class="timeline-node w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                        <div class="w-5/12">
+                            <div class="legal-card rounded-xl p-6">
+                                <h3 class="text-lg font-semibold mb-2">August 4, 1961</h3>
+                                <p class="text-gray-600" data-en="Trial begins. Gideon requests appointed counsel but is denied" data-zh="审判开始。吉迪恩请求指定律师但被拒绝">Trial begins. Gideon requests appointed counsel but is denied</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item flex items-center justify-between">
+                        <div class="w-5/12 text-right">
+                            <div class="legal-card rounded-xl p-6">
+                                <h3 class="text-lg font-semibold mb-2">August 4, 1961</h3>
+                                <p class="text-gray-600" data-en="Gideon convicted and sentenced to 5 years in prison" data-zh="吉迪恩被定罪并判处5年监禁">Gideon convicted and sentenced to 5 years in prison</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                        <div class="w-5/12"></div>
+                    </div>
+                    
+                    <div class="timeline-item flex items-center justify-between">
+                        <div class="w-5/12"></div>
+                        <div class="timeline-node w-4 h-4 bg-amber-600 rounded-full border-4 border-white shadow-lg"></div>
+                        <div class="w-5/12">
+                            <div class="legal-card rounded-xl p-6">
+                                <h3 class="text-lg font-semibold mb-2">January 15, 1963</h3>
+                                <p class="text-gray-600" data-en="Supreme Court hears oral arguments" data-zh="最高法院听取口头辩论">Supreme Court hears oral arguments</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item flex items-center justify-between">
+                        <div class="w-5/12 text-right">
+                            <div class="legal-card rounded-xl p-6">
+                                <h3 class="text-lg font-semibold mb-2">March 18, 1963</h3>
+                                <p class="text-gray-600" data-en="Supreme Court issues unanimous decision in Gideon's favor" data-zh="最高法院作出一致裁决，支持吉迪恩">Supreme Court issues unanimous decision in Gideon's favor</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node w-4 h-4 bg-green-600 rounded-full border-4 border-white shadow-lg"></div>
+                        <div class="w-5/12"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Terms Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4" data-en="Key Legal Terms" data-zh="关键法律术语">Key Legal Terms</h2>
+                <p class="text-xl text-gray-600" data-en="Hover over cards to see definitions" data-zh="悬停在卡片上查看定义">Hover over cards to see definitions</p>
+            </div>
+            
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Due Process</h3>
+                            <p class="text-sm text-gray-600 mt-2">正当法律程序</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">正当法律程序</h3>
+                            <p class="text-sm">Constitutional guarantee that the government must follow fair procedures before depriving a person of life, liberty, or property</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Indigent</h3>
+                            <p class="text-sm text-gray-600 mt-2">贫困的</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">贫困的</h3>
+                            <p class="text-sm">Lacking the financial means to afford legal representation; too poor to hire an attorney</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Counsel</h3>
+                            <p class="text-sm text-gray-600 mt-2">律师</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">律师</h3>
+                            <p class="text-sm">Legal representation by an attorney or lawyer in court proceedings</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Habeas Corpus</h3>
+                            <p class="text-sm text-gray-600 mt-2">人身保护令</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">人身保护令</h3>
+                            <p class="text-sm">Legal writ challenging the legality of detention or imprisonment</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Felony</h3>
+                            <p class="text-sm text-gray-600 mt-2">重罪</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">重罪</h3>
+                            <p class="text-sm">A serious criminal offense punishable by more than one year in prison</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Overrule</h3>
+                            <p class="text-sm text-gray-600 mt-2">推翻</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">推翻</h3>
+                            <p class="text-sm">When a court reverses or nullifies a previous legal precedent</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Incorporation</h3>
+                            <p class="text-sm text-gray-600 mt-2">合并原则</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">合并原则</h3>
+                            <p class="text-sm">Application of Bill of Rights protections to state governments through the 14th Amendment</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="term-card">
+                    <div class="term-card-inner">
+                        <div class="term-card-front bg-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900">Adversary System</h3>
+                            <p class="text-sm text-gray-600 mt-2">对抗制</p>
+                            <div class="mt-4 text-xs text-gray-500">Hover to learn more</div>
+                        </div>
+                        <div class="term-card-back">
+                            <h3 class="text-lg font-semibold mb-2">对抗制</h3>
+                            <p class="text-sm">Legal system where opposing parties present their cases before a neutral judge</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <a href="knowledge-base.html" class="inline-flex items-center px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-all">
+                    <span data-en="View Complete Knowledge Base" data-zh="查看完整知识库">View Complete Knowledge Base</span>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-amber-500 rounded-full"></div>
+                <span class="text-xl font-semibold">Gideon v. Wainwright</span>
+            </div>
+            <p class="text-gray-400 mb-4" data-en="Educational resource for the landmark Supreme Court case establishing the right to counsel" data-zh="为确立律师权的里程碑式最高法院案例提供教育资源">
+                Educational resource for the landmark Supreme Court case establishing the right to counsel
+            </p>
+            <p class="text-sm text-gray-500" data-en="© 2024 Legal Education Project. Created for educational purposes." data-zh="© 2024 法律教育项目。为教育目的而创建。">
+                © 2024 Legal Education Project. Created for educational purposes.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Language toggle functionality
+        document.getElementById('langToggle').addEventListener('click', function() {
+            const currentLang = document.documentElement.lang;
+            const targetLang = currentLang === 'en' ? 'zh' : 'en';
+            
+            document.documentElement.lang = targetLang;
+            
+            // Update all elements with data-en and data-zh attributes
+            document.querySelectorAll('[data-en][data-zh]').forEach(el => {
+                el.textContent = el.getAttribute(`data-${targetLang}`);
+            });
+            
+            // Update language toggle text
+            this.textContent = targetLang === 'en' ? 'EN / 中文' : '中文 / EN';
+            
+            // Save language preference to localStorage
+            localStorage.setItem('preferredLanguage', targetLang);
+        });
+        
+        // Load preferred language from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
+            document.documentElement.lang = preferredLang;
+            
+            // Update all elements with data-en and data-zh attributes
+            document.querySelectorAll('[data-en][data-zh]').forEach(el => {
+                el.textContent = el.getAttribute(`data-${preferredLang}`);
+            });
+            
+            // Update language toggle text
+            document.getElementById('langToggle').textContent = preferredLang === 'en' ? 'EN / 中文' : '中文 / EN';
+            
+            // Initialize hero section animations
+            initHeroAnimations();
+            
+            // Initialize timeline node interactions
+            initTimelineInteractions();
+            
+            // Initialize mobile menu toggle
+            initMobileMenu();
+            
+            // Initialize smooth scrolling for anchor links
+            initSmoothScrolling();
+            
+            // Initialize progress tracking
+            initProgressTracking();
+        });
+        
+        // Hero section animations
+        function initHeroAnimations() {
+            // Animate hero title
+            anime({
+                targets: '#heroTitle',
+                opacity: [0, 1],
+                translateY: [50, 0],
+                easing: 'easeOutExpo',
+                duration: 1200,
+                delay: 300
+            });
+            
+            // Animate hero subtitle
+            anime({
+                targets: '#heroSubtitle',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                easing: 'easeOutExpo',
+                duration: 1200,
+                delay: 600
+            });
+            
+            // Animate hero buttons
+            anime({
+                targets: '#heroButtons',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                easing: 'easeOutExpo',
+                duration: 1200,
+                delay: 900
+            });
+        }
+        
+        // Timeline node interactions
+        function initTimelineInteractions() {
+            const timelineNodes = document.querySelectorAll('.timeline-node');
+            timelineNodes.forEach((node, index) => {
+                node.addEventListener('mouseenter', function() {
+                    anime({
+                        targets: this,
+                        scale: 1.5,
+                        duration: 300,
+                        easing: 'easeOutQuad'
+                    });
+                });
+                
+                node.addEventListener('mouseleave', function() {
+                    anime({
+                        targets: this,
+                        scale: 1,
+                        duration: 300,
+                        easing: 'easeOutQuad'
+                    });
+                });
+                
+                node.addEventListener('click', function() {
+                    // Remove active class from all nodes
+                    timelineNodes.forEach(n => n.classList.remove('active'));
+                    
+                    // Add active class to clicked node
+                    this.classList.add('active');
+                    
+                    // Get corresponding content
+                    const timelineItems = document.querySelectorAll('.timeline-item');
+                    const content = timelineItems[index].querySelector('.legal-card');
+                    
+                    // Highlight the content
+                    anime({
+                        targets: content,
+                        boxShadow: ['0 4px 6px rgba(0, 0, 0, 0.05)', '0 10px 25px rgba(26, 54, 93, 0.2)'],
+                        duration: 300,
+                        easing: 'easeOutQuad'
+                    });
+                });
+            });
+        }
+        
+        // Mobile menu toggle
+        function initMobileMenu() {
+            document.getElementById('mobileMenu').addEventListener('click', function() {
+                const navLinks = document.querySelector('.hidden');
+                navLinks.classList.toggle('hidden');
+                navLinks.classList.toggle('flex');
+                navLinks.classList.toggle('flex-col');
+                navLinks.classList.toggle('absolute');
+                navLinks.classList.toggle('top-16');
+                navLinks.classList.toggle('left-0');
+                navLinks.classList.toggle('w-full');
+                navLinks.classList.toggle('bg-white');
+                navLinks.classList.toggle('shadow-lg');
+                navLinks.classList.toggle('p-4');
+                navLinks.classList.toggle('z-50');
+            });
+        }
+        
+        // Smooth scrolling for anchor links
+        function initSmoothScrolling() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80, // Adjust for fixed header
+                            behavior: 'smooth'
+                        });
+                        
+                        // Close mobile menu if open
+                        const mobileMenu = document.querySelector('.hidden.flex');
+                        if (mobileMenu) {
+                            mobileMenu.classList.remove('flex');
+                            mobileMenu.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Scroll progress indicator
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("scrollProgress").style.width = scrolled + "%";
+            
+            // Update progress tracking
+            updateProgressTracking(scrolled);
+        });
+        
+        // Progress tracking
+        function initProgressTracking() {
+            // Initialize progress from localStorage or 0
+            const savedProgress = localStorage.getItem('readingProgress') || 0;
+            document.getElementById("scrollProgress").style.width = savedProgress + "%";
+            
+            // Create progress display in console (for demo purposes)
+            console.log(`Initial reading progress: ${savedProgress}%`);
+        }
+        
+        function updateProgressTracking(percentage) {
+            // Save progress to localStorage
+            localStorage.setItem('readingProgress', percentage.toFixed(1));
+            
+            // Update progress display in console (for demo purposes)
+            console.log(`Current reading progress: ${percentage.toFixed(1)}%`);
+        }
+        
+        // p5.js background animation
+        function setup() {
+            const canvas = createCanvas(windowWidth, windowHeight);
+            canvas.parent('p5-background');
+            noLoop();
+        }
+        
+        function draw() {
+            background(255);
+            noFill();
+            stroke(26, 54, 93, 0.05);
+            
+            const gridSize = 50;
+            const numLines = width / gridSize;
+            
+            for (let i = 0; i < numLines; i++) {
+                beginShape();
+                for (let x = 0; x < width; x += 10) {
+                    const y = i * gridSize + sin(x * 0.01 + frameCount * 0.01) * 20;
+                    vertex(x, y);
+                }
+                endShape();
+            }
+        }
+        
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+        
+        // Start animation loop
+        function mouseMove() {
+            loop();
+            setTimeout(noLoop, 1000);
+        }
+    </script>
+</body>
+</html>
